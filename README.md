@@ -43,7 +43,7 @@
 ### 从源码构建
 
 ```bash
-git clone https://github.com/<your-name>/macstatus-monitor.git
+git clone https://github.com/captain-fat/macstatus-monitor.git
 cd macstatus-monitor/MacStatusMonitor
 
 ./Scripts/build.sh          # 编译（release）
