@@ -154,7 +154,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func runDumpMode(seconds: TimeInterval) {
         print(String(format: "数据自检：%.0f 秒，口径 = %@", seconds, settings.gpuMetric.displayName))
         print(pad("时间", 10) + pad("CPU%", 7, right: true) + pad("GPU%", 7, right: true)
-              + pad("压力", 9, right: true) + pad("空闲GB", 8, right: true) + "  来源 / 备注")
+              + pad("压力", 9, right: true) + pad("已用GB", 8, right: true)
+              + pad("缓存GB", 8, right: true) + pad("交换GB", 8, right: true) + "  来源 / 备注")
 
         var frames = 0
         let startedAt = Date()
@@ -164,12 +165,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let cpu = snapshot.cpu.map { String(format: "%.1f", $0) } ?? "—"
             let gpu = snapshot.gpu.map { String(format: "%.1f", $0) } ?? "N/A"
             let pressure = snapshot.memoryPressure?.displayName ?? "?"
-            let free = snapshot.memoryFreeBytes.map { String(format: "%.2f", Double($0) / 1e9) } ?? "—"
+            let used = snapshot.memoryUsedBytes.map { String(format: "%.1f", Double($0) / 1_073_741_824) } ?? "—"
+            let cached = snapshot.memoryCachedBytes.map { String(format: "%.1f", Double($0) / 1_073_741_824) } ?? "—"
+            let swap = snapshot.swapUsedBytes.map { String(format: "%.1f", Double($0) / 1_073_741_824) } ?? "—"
             var note = snapshot.gpuSource ?? ""
             if let reason = snapshot.gpuUnavailableReason { note = reason }
             if let diagnostics = snapshot.gpuDiagnostics { note += "  [hw: \(diagnostics)]" }
             print(self.pad(self.clock(), 10) + self.pad(cpu, 7, right: true) + self.pad(gpu, 7, right: true)
-                  + self.pad(pressure, 9, right: true) + self.pad(free, 8, right: true) + "  " + note)
+                  + self.pad(pressure, 9, right: true) + self.pad(used, 8, right: true)
+                  + self.pad(cached, 8, right: true) + self.pad(swap, 8, right: true) + "  " + note)
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
@@ -221,16 +225,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self.colorSettings.resetToDefaults()
                 }
 
+                // Popover 与设置窗口分开验证：设置窗口一旦成为 key window，
+                // transient Popover 会自动关闭，同时开会误报成"弹不出来"。
                 let shown = menuBar.debugShowPopover()
-                self.openSettings()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                     print("popover shown = \(shown) / \(menuBar.debugPopoverShown)  size = \(menuBar.debugPopoverSize)")
-                    if let window = self.settingsWindow?.window {
-                        print("settings window = \(window.frame.size)  visible=\(window.isVisible)")
+                    self.openSettings()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        if let window = self.settingsWindow?.window {
+                            print("settings window = \(window.frame.size)  visible=\(window.isVisible)")
+                        }
+                        print("login item status = \(self.loginManager.debugStatus)")
+                        print("======================")
+                        NSApp.terminate(nil)
                     }
-                    print("login item status = \(self.loginManager.debugStatus)")
-                    print("======================")
-                    NSApp.terminate(nil)
                 }
             }
         }

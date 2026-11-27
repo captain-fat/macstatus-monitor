@@ -112,6 +112,8 @@ public final class SystemMonitor {
     private func deliverInitial() {
         let details = memory.details()
         var snapshot = MonitorSnapshot(memoryPressure: memory.refreshLevel())
+        snapshot.memoryUsedBytes = details.usedBytes
+        snapshot.memoryCachedBytes = details.cachedBytes
         snapshot.memoryFreeBytes = details.freeBytes
         snapshot.memoryCompressedBytes = details.compressedBytes
         snapshot.memoryWiredBytes = details.wiredBytes
@@ -153,6 +155,8 @@ public final class SystemMonitor {
             gpuDetail: gpuSample?.detail,
             gpuUnavailableReason: gpuSample == nil ? (gpu.unavailableReason ?? "GPU 数据不可用") : nil,
             gpuDiagnostics: gpu.lastHardwareFailure,
+            memoryUsedBytes: details.usedBytes,
+            memoryCachedBytes: details.cachedBytes,
             memoryFreeBytes: details.freeBytes,
             memoryCompressedBytes: details.compressedBytes,
             memoryWiredBytes: details.wiredBytes,

@@ -51,6 +51,10 @@ public struct MonitorSnapshot: Sendable {
     /// 硬件采样器最近一次失败的具体原因（诊断用，不显示在 UI）
     public var gpuDiagnostics: String?
 
+    /// 活动监视器口径的「已使用内存」（App + Wired + Compressed）
+    public var memoryUsedBytes: UInt64?
+    /// 活动监视器口径的「已缓存文件」
+    public var memoryCachedBytes: UInt64?
     public var memoryFreeBytes: UInt64?
     public var memoryCompressedBytes: UInt64?
     public var memoryWiredBytes: UInt64?
@@ -72,6 +76,8 @@ public struct MonitorSnapshot: Sendable {
         gpuDetail: String? = nil,
         gpuUnavailableReason: String? = nil,
         gpuDiagnostics: String? = nil,
+        memoryUsedBytes: UInt64? = nil,
+        memoryCachedBytes: UInt64? = nil,
         memoryFreeBytes: UInt64? = nil,
         memoryCompressedBytes: UInt64? = nil,
         memoryWiredBytes: UInt64? = nil,
@@ -91,6 +97,8 @@ public struct MonitorSnapshot: Sendable {
         self.gpuDetail = gpuDetail
         self.gpuUnavailableReason = gpuUnavailableReason
         self.gpuDiagnostics = gpuDiagnostics
+        self.memoryUsedBytes = memoryUsedBytes
+        self.memoryCachedBytes = memoryCachedBytes
         self.memoryFreeBytes = memoryFreeBytes
         self.memoryCompressedBytes = memoryCompressedBytes
         self.memoryWiredBytes = memoryWiredBytes
@@ -116,6 +124,8 @@ extension MonitorSnapshot: Equatable {
             && lhs.gpuSource == rhs.gpuSource
             && lhs.gpuDetail == rhs.gpuDetail
             && lhs.gpuUnavailableReason == rhs.gpuUnavailableReason
+            && lhs.memoryUsedBytes == rhs.memoryUsedBytes
+            && lhs.memoryCachedBytes == rhs.memoryCachedBytes
             && lhs.memoryFreeBytes == rhs.memoryFreeBytes
             && lhs.memoryCompressedBytes == rhs.memoryCompressedBytes
             && lhs.memoryWiredBytes == rhs.memoryWiredBytes

@@ -214,11 +214,13 @@ enum PreviewRenderer {
             cpuUser: 27, cpuSystem: 11, cpuIdle: 62,
             perCoreCPU: [55, 48, 61, 44, 39, 33, 12, 9, 7, 5],
             loadAverage: [3.21, 2.87, 2.44],
-            gpuSource: "硬件忙时占比（IOReport）",
+            gpuSource: "硬件活跃占比",
+            memoryUsedBytes: 26_700_000_000,
+            memoryCachedBytes: 6_600_000_000,
             memoryFreeBytes: 1_800_000_000,
             memoryCompressedBytes: 4_200_000_000,
             memoryWiredBytes: 3_100_000_000,
-            swapUsedBytes: 512_000_000,
+            swapUsedBytes: 5_600_000_000,
             timestamp: Date()
         )
         let store = MonitorStore(snapshot: sample)

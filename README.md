@@ -13,7 +13,8 @@
 - **标签三态**：`CPU/GPU`、`C/G`、不显示；百分比可分别开关
 - **进度条可调**：20 / 30 / 40 pt，也可以关掉只留百分比
 - **内存压力**：用彩色圆角外框包住整个图标，Normal 绿 / Warning 黄 / Critical 红，无多余文字
-- **详情面板**：点击展开 CPU 分项（用户/系统/空闲）、GPU 口径与来源、内存明细
+- **详情面板**：CPU 分项（用户/系统/空闲）、GPU 口径与来源，以及活动监视器同口径的
+  物理内存 / 已使用内存 / 已缓存文件 / 已使用交换
 - **GPU 口径可选**：硬件活跃占比（推荐）/ 驱动自报百分比 / 自动降级
 - **设置窗口**：标签、条长、百分比、刷新间隔、GPU 口径、压力三色、开机启动
 - **低占用**：单一 1 Hz 定时器，值不变就不重绘
@@ -34,7 +35,7 @@
 
 ### 下载
 
-到 [Releases](../../releases) 下载 `MacStatusMonitor-1.0.0.zip`，解压后把
+到 [Releases](../../releases) 下载 `MacStatusMonitor-1.0.1.zip`，解压后把
 `MacStatus Monitor.app` 拖进 `/Applications`。
 
 > 当前发布包是 ad-hoc 签名（没有 Developer ID），从网络下载后 Gatekeeper 会拦截：

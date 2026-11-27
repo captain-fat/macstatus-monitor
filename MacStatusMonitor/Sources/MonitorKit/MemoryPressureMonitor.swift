@@ -4,11 +4,17 @@ import Dispatch
 
 /// 内存明细（只用于 Popover 展示，不参与压力等级判定）。
 public struct MemoryDetails: Sendable {
-    public var freeBytes: UInt64
+    public var totalBytes: UInt64
+    /// 活动监视器的「已使用内存」= App Memory + Wired + Compressed
+    public var usedBytes: UInt64
+    /// 活动监视器的「已缓存文件」= 文件页 + 可清除页
+    public var cachedBytes: UInt64
+    /// 其中：App Memory（匿名页 − 可清除页）
+    public var appBytes: UInt64
     public var compressedBytes: UInt64
     public var wiredBytes: UInt64
+    public var freeBytes: UInt64
     public var swapUsedBytes: UInt64
-    public var totalBytes: UInt64
     public var rawLevel: Int32
 }
 
@@ -110,10 +116,6 @@ public final class MemoryPressureMonitor {
     }
 
     public func details() -> MemoryDetails {
-        var freeBytes: UInt64 = 0
-        var compressedBytes: UInt64 = 0
-        var wiredBytes: UInt64 = 0
-
         var vm = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
         let result = withUnsafeMutablePointer(to: &vm) { pointer -> kern_return_t in
@@ -121,11 +123,30 @@ public final class MemoryPressureMonitor {
                 host_statistics64(host, HOST_VM_INFO64, rebound, &count)
             }
         }
+
+        var total: UInt64 = 0
+        var app: UInt64 = 0
+        var wired: UInt64 = 0
+        var compressed: UInt64 = 0
+        var cached: UInt64 = 0
+        var free: UInt64 = 0
+
         if result == KERN_SUCCESS {
             let page = UInt64(vm_kernel_page_size)
-            freeBytes = UInt64(vm.free_count) * page
-            compressedBytes = UInt64(vm.compressor_page_count) * page
-            wiredBytes = UInt64(vm.wire_count) * page
+            let internalPages = UInt64(vm.internal_page_count)
+            let externalPages = UInt64(vm.external_page_count)
+            let purgeablePages = UInt64(vm.purgeable_count)
+
+            // 与活动监视器口径一致：
+            //   App Memory   = 匿名页 − 可清除页
+            //   Cached Files = 文件页 + 可清除页
+            //   Memory Used  = App + Wired + Compressed
+            app = (internalPages > purgeablePages ? internalPages - purgeablePages : 0) * page
+            wired = UInt64(vm.wire_count) * page
+            compressed = UInt64(vm.compressor_page_count) * page
+            cached = (externalPages + purgeablePages) * page
+            free = UInt64(vm.free_count) * page
+            total = ProcessInfo.processInfo.physicalMemory
         }
 
         var swap = xsw_usage()
@@ -138,11 +159,14 @@ public final class MemoryPressureMonitor {
         }
 
         return MemoryDetails(
-            freeBytes: freeBytes,
-            compressedBytes: compressedBytes,
-            wiredBytes: wiredBytes,
+            totalBytes: total,
+            usedBytes: app + wired + compressed,
+            cachedBytes: cached,
+            appBytes: app,
+            compressedBytes: compressed,
+            wiredBytes: wired,
+            freeBytes: free,
             swapUsedBytes: swapUsed,
-            totalBytes: ProcessInfo.processInfo.physicalMemory,
             rawLevel: Self.readRawLevel()
         )
     }

@@ -31,6 +31,7 @@ struct MonitorPopoverView: View {
                     detail: snapshot.gpuSource ?? "—"
                 )
                 pressureRow
+                memoryRows
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
@@ -76,13 +77,39 @@ struct MonitorPopoverView: View {
                 .foregroundStyle(snapshot.memoryPressure == nil ? .secondary : .primary)
 
             Spacer(minLength: 0)
-
-            if let free = snapshot.memoryFreeBytes, snapshot.physicalMemoryBytes > 0 {
-                Text(String(format: "可用 %.1f GB", Double(free) / 1e9))
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-            }
         }
+    }
+
+    /// 与活动监视器「内存」页一致的四项
+    private var memoryRows: some View {
+        VStack(spacing: 5) {
+            memoryRow("物理内存", snapshot.physicalMemoryBytes)
+            memoryRow("已使用内存", snapshot.memoryUsedBytes)
+            memoryRow("已缓存文件", snapshot.memoryCachedBytes)
+            memoryRow("已使用交换", snapshot.swapUsedBytes)
+        }
+        .padding(.top, 2)
+    }
+
+    private func memoryRow(_ title: String, _ bytes: UInt64?) -> some View {
+        HStack {
+            Text(title)
+                .font(.system(size: 10.5))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(Self.formattedSize(bytes))
+                .font(.system(size: 10.5).monospacedDigit())
+                .foregroundStyle(.primary)
+        }
+    }
+
+    static func formattedSize(_ bytes: UInt64?) -> String {
+        guard let bytes else { return "—" }
+        let gib = Double(bytes) / 1_073_741_824
+        if gib >= 1 {
+            return String(format: "%.1f GB", gib)
+        }
+        return String(format: "%.0f MB", Double(bytes) / 1_048_576)
     }
 
     private var pressureColor: Color {
